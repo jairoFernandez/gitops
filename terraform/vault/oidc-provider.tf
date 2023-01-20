@@ -1,13 +1,23 @@
+terraform {
+  required_providers {
+    gitlab = {
+      source = "gitlabhq/gitlab"
+      version = "3.20.0"
+    }
+  }
+}
+
 resource "vault_identity_oidc_key" "key" {
   name               = "kubefirst"
   algorithm          = "RS256"
   allowed_client_ids = ["*"] # todo make explicit list of client ids
+  verification_ttl = 2500 # 41min
 }
 
 resource "vault_identity_oidc_provider" "kubefirst" {
   name          = "kubefirst"
   https_enabled = true
-  issuer_host   = "vault.<AWS_HOSTED_ZONE_NAME>"
+  issuer_host   = "vault."
   allowed_client_ids = [
     "*" # todo make explicit list of client ids
   ]

@@ -3,46 +3,49 @@ kind: Application
 metadata:
   name: chartmuseum
   namespace: argocd
-  finalizers:
-  - resources-finalizer.argocd.argoproj.io
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "20"
 spec:
   project: default
   source:
     repoURL: 'https://chartmuseum.github.io/charts'
-    targetRevision: 3.9.0
+    targetRevision: 3.9.1
     helm:
       values: |-
-        serviceAccount:
-          create: true
-          name: chartmuseum
+        ingress:
+          enabled: true
           annotations:
-            eks.amazonaws.com/role-arn: 'arn:aws:iam::<AWS_ACCOUNT_ID>:role/chartmuseum-<CLUSTER_NAME>'
+            traefik.ingress.kubernetes.io/router.middlewares: chartmuseum-redirect-to-https@kubernetescrd
+          pathType: Prefix
+          hosts:
+            - name: chartmuseum.localdev.me
+              path: /
+              tls: enable
+              tlsSecret: chartmuseum-tls
         env:
           open:
             AUTH_ANONYMOUS_GET: true
-            AWS_SDK_LOAD_CONFIG: true
             STORAGE: amazon
-            STORAGE_AMAZON_BUCKET: <CHARTMUSEUM_BUCKET>
+            STORAGE_AMAZON_BUCKET: chartmuseum
             STORAGE_AMAZON_PREFIX: kubefirst-charts
-            STORAGE_AMAZON_REGION: <AWS_DEFAULT_REGION>
+            STORAGE_AMAZON_REGION: us-k3d-1
+            STORAGE_AMAZON_ENDPOINT: http://minio.minio.svc.cluster.local:9000
             DISABLE_API: false
-          existingSecret: chartmuseum-secrets
-        ingress:
-          enabled: true
-          pathType: "Prefix"
-          annotations:
-            cert-manager.io/cluster-issuer: "letsencrypt-prod"
-          hosts:
-            - name: chartmuseum.<AWS_HOSTED_ZONE_NAME>
-              path: /
-              tls: true
-              tlsSecret: chartmuseum-tls
-          ingressClassName: nginx
+          secret:
+            BASIC_AUTH_USER: k-ray
+            BASIC_AUTH_PASS: feedkraystars
+            AWS_ACCESS_KEY_ID: k-ray
+            AWS_SECRET_ACCESS_KEY: feedkraystars
+          # existingSecret: chartmuseum-secrets
+          # existingSecretMappings:
+          #   BASIC_AUTH_USER: BASIC_AUTH_USER
+          #   BASIC_AUTH_PASS: BASIC_AUTH_PASS
+          #   AWS_ACCESS_KEY_ID: AWS_ACCESS_KEY_ID
+          #   AWS_SECRET_ACCESS_KEY: AWS_SECRET_ACCESS_KEY            
+          # existingSecret: chartmuseum-secrets
     chart: chartmuseum
-  destination:
-    server: 'https://kubernetes.default.svc'
+  destination: 
+    server: https://kubernetes.default.svc
     namespace: chartmuseum
   syncPolicy:
     automated:

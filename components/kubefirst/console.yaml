@@ -15,70 +15,63 @@ spec:
       values: |-
         env:
           ADMIN_EMAIL:
-            value: "<EMAIL_ADDRESS>"
+            value: ""
           CLUSTER_NAME:
-            value: "<CLUSTER_NAME>"
+            value: "kubefirst"
           HOSTED_ZONE_NAME:
-            value: "<AWS_HOSTED_ZONE_NAME>"
+            value: ""
           GITHUB_HOST:
-            value: "<GITHUB_HOST>"
+            value: "github.com"
           GITHUB_OWNER:
-            value: "<GITHUB_OWNER>"
+            value: "jairofernandez"
           ARGO_WORKFLOWS_URL:
-            value: "<ARGO_WORKFLOWS_URL>"
+            value: "https://argo.localdev.me"
           VAULT_URL:
-            value: "<VAULT_URL>"
+            value: "https://vault.localdev.me"
           ARGO_CD_URL:
-            value: "<ARGO_CD_URL>"
+            value: "https://argocd.localdev.me"
           ATLANTIS_URL:
-            value: "<ATLANTIS_URL>"
+            value: "https://atlantis.localdev.me"
           METAPHOR_DEV:
-            value: "<METAPHOR_DEV>"
+            value: "https://metaphor-frontend-development.localdev.me/api"
           METAPHOR_GO_DEV:
             value: "<METAPHOR_GO_DEV>"
           METAPHOR_FRONT_DEV:
-            value: "<METAPHOR_FRONT_DEV>"
+            value: "https://metaphor-frontend-development.localdev.me"
           METAPHOR_STAGING:
-            value: "<METAPHOR_STAGING>"
+            value: "https://metaphor-frontend-staging.localdev.me/api"
           METAPHOR_GO_STAGING:
             value: "<METAPHOR_GO_STAGING>"
           METAPHOR_FRONT_STAGING:
-            value: "<METAPHOR_FRONT_STAGING>"
+            value: "https://metaphor-frontend-staging.localdev.me"
           METAPHOR_PROD:
-            value: "<METAPHOR_PROD>"
+            value: "https://metaphor-frontend-production.localdev.me/api"
           METAPHOR_GO_PROD:
             value: "<METAPHOR_GO_PROD>"
           METAPHOR_FRONT_PROD:
-            value: "<METAPHOR_FRONT_PROD>"
+            value: "https://metaphor-frontend-production.localdev.me"
           KUBEFIRST_VERSION:
-            value: "<KUBEFIRST_VERSION>"
+            value: "1.11.0"
           USE_TELEMETRY:
-            value: "<USE_TELEMETRY>"
+            value: "true"
           MACHINE_ID:
-            value: "<MACHINE_ID>"
+            value: "E8E487C1-06F4-556A-AA4F-C3851857DE4B"
           IS_LOCAL:
-            value: "false"
+            value: "true"
         ingress:
           enabled: true
           annotations:
-            kubernetes.io/ingress.class: nginx
-            cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            nginx.ingress.kubernetes.io/auth-signin: "https://vouch.<AWS_HOSTED_ZONE_NAME>/login?url=$scheme://$http_host$request_uri&vouch-failcount=$auth_resp_failcount&X-Vouch-Token=$auth_resp_jwt&error=$auth_resp_err"
-            nginx.ingress.kubernetes.io/auth-url: https://vouch.<AWS_HOSTED_ZONE_NAME>/validate
-            nginx.ingress.kubernetes.io/auth-response-headers: X-Vouch-User
-            nginx.ingress.kubernetes.io/auth-snippet: |
-              auth_request_set $auth_resp_jwt $upstream_http_x_vouch_jwt;
-              auth_request_set $auth_resp_err $upstream_http_x_vouch_err;
-              auth_request_set $auth_resp_failcount $upstream_http_x_vouch_failcount;
+            traefik.ingress.kubernetes.io/router.middlewares: kubefirst-redirect-to-https@kubernetescrd
+          className: ""
           hosts:
-            - host: kubefirst.<AWS_HOSTED_ZONE_NAME>
+            - host: kubefirst.localdev.me
               paths:
                 - path: /
-                  pathType: ImplementationSpecific
+                  pathType: Prefix
           tls:
             - secretName: kubefirst-tls
               hosts:
-                - kubefirst.<AWS_HOSTED_ZONE_NAME>
+                - kubefirst.localdev.me
   destination:
     server: https://kubernetes.default.svc
     namespace: kubefirst

@@ -7,6 +7,8 @@ terraform {
   }
 }
 
+
+
 resource "vault_identity_entity" "user" {
   name     = var.username
   disabled = var.user_disabled
@@ -36,15 +38,11 @@ resource "random_password" "password" {
 resource "vault_generic_endpoint" "user" {
   path                 = "auth/userpass/users/${var.username}"
   ignore_absent_fields = true
-  
-  lifecycle {
-    ignore_changes = [ data_json ] 
-   }
 
   data_json = jsonencode(
     {
       policies  = var.acl_policies,
-      password  = var.initial_password != "" ? var.initial_password : random_password.password.result
+      password  = random_password.password.result
       token_ttl = "1h"
     }
   )
@@ -52,13 +50,10 @@ resource "vault_generic_endpoint" "user" {
 
 resource "vault_generic_secret" "user" {
   path = "users/${var.username}"
-  
-  lifecycle {
-    ignore_changes = [ data_json ] 
-   }
+
   data_json = <<EOT
 {
-  "initial-password": "${var.initial_password != "" ? var.initial_password : random_password.password.result}"
+  "initial-password": "${random_password.password.result}"
 }
 EOT
 }
